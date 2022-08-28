@@ -1,3 +1,4 @@
+from django.db.models import Count
 from django.views.generic import ListView
 
 from main.models import Blog
@@ -6,7 +7,7 @@ from main.models import Blog
 class BlogAuthorsView(ListView):
     model = Blog
     template_name = 'main/blog_authors.html'
-    context_object_name = 'authors'
+    # context_object_name = 'authors'
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -33,3 +34,12 @@ class BlogAuthorsView(ListView):
             """
         )
 
+
+class BlogAuthorsViewORM(BlogAuthorsView):
+    def get_queryset(self):
+        return Blog.objects.values('id','name').annotate(authors=Count('entry__authors', distinct=True)).order_by('name')
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Authors (ORM)'
+        return context
